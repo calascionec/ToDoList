@@ -2,10 +2,12 @@
 class Task
 {
     private $description;
+    private $id;
 
-    function __construct($description)
+    function __construct($description, $id = null)
     {
         $this->description = $description;
+        $this->id = $id;
     }
 
     function setDescription($new_description)
@@ -18,19 +20,34 @@ class Task
         return $this->description;
     }
 
+    function getId()
+    {
+        return $this->id;
+    }
+
     function save()
     {
-        array_push($_SESSION['list_of_tasks'], $this);
+        $GLOBALS['DB']->exec("INSERT INTO tasks (description) VALUES ('{$this->getDescription()}');");
+
+        $this->id = $GLOBALS['DB']->lastInsertId();
     }
 
     static function getAll()
     {
-        return $_SESSION['list_of_tasks'];
+        $returned_tasks = $GLOBALS['DB']->query("SELECT * FROM tasks;");
+        $tasks = array();
+        foreach ($returned_tasks as $task) {
+            $description = $task['description'];
+            $new_task = new Task($description);
+            array_push($tasks, $new_task);
+        }
+
+        return $tasks;
     }
 
     static function deleteAll()
     {
-        $_SESSION['list_of_tasks'] = array();
+        $GLOBALS['DB']->exec("DELETE FROM tasks;");
     }
 
 
